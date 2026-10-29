@@ -1,0 +1,142 @@
+
+import uuid
+
+from agents.generator.memory import (
+    create_conversation,
+    save_question,
+    save_attempt,
+    get_chat_history,
+)
+from ingestion.pipeline import ingest
+from retrieval.retriever import retriever
+from agents.generator.agent import generator_agent
+from agents.evaluator.agent import evaluate_agent
+from agents.evaluator.memory import save_evaluation
+from storage.database import init_db
+
+init_db()
+
+def format_previous_attempts(attempts):
+    if not attempts:
+        return ""
+
+    formatted = []
+
+    for attempt in attempts:
+        formatted.append(
+            f"Attempt number: {attempt['attempt_number']}\n"
+            f"Generated answer: {attempt['answer']}\n"
+            f"Evaluator decision: {attempt['decision']}\n"
+            f"Evaluator feedback: {attempt.get('feedback', '')}"
+        )
+
+    return "\n\n".join(formatted)
+
+
+def process_source_question(
+    source,
+    source_type,
+    question,
+    conversation_id=None,
+    max_attempts=4,
+):
+    if not question or not question.strip():
+        raise ValueError("question cannot be empty")
+
+    if not 1 <= max_attempts <= 4:
+        raise ValueError("max_attempts must be between 1 and 4")
+
+    if conversation_id is None:
+        conversation_id = str(uuid.uuid4())
+        create_conversation(conversation_id)
+
+    question_id = str(uuid.uuid4())
+
+    save_question(
+        question_id=question_id,
+        conversation_id=conversation_id,
+        content=question,
+    )
+
+    ingest(source, source_type)
+    retriever_instance = retriever(k=3)
+    context = retriever_instance.invoke(question)
+    chat_history = get_chat_history(conversation_id)
+
+    previous_attempts = []
+
+    final_answer = None
+    final_decision = None
+
+    for attempt_number in range(1, max_attempts + 1):
+        attempt_id = str(uuid.uuid4())
+
+        attempts_text = format_previous_attempts(previous_attempts)
+
+        generator_ans = generator_agent(
+            context=context,
+            question=question,
+            chat_history=str(chat_history),
+            previous_attempts=attempts_text,
+        )
+
+        save_attempt(
+            attempt_id=attempt_id,
+            question_id=question_id,
+            attempt_number=attempt_number,
+            answer=generator_ans,
+        )
+
+        evaluation = evaluate_agent(
+            question=question,
+            context=context,
+            answer=generator_ans,
+        )
+        print("Evaluation type:", type(evaluation))
+        print("Evaluation value:", repr(evaluation))
+        print(evaluation)
+
+        decision = evaluation["decision"]
+        if decision not in ("accept", "revise"):
+            raise ValueError(
+                f"Unexpected evaluator decision: {decision}"
+            )
+
+        save_evaluation(
+            evaluation_id=str(uuid.uuid4()),
+            attempt_id=attempt_id,
+            decision=decision,
+            feedback=evaluation.get("feedback", ""),
+            accuracy=evaluation.get("accuracy"),
+            relevance=evaluation.get("relevance"),
+            completeness=evaluation.get("completeness"),
+            consistency=evaluation.get("consistency"),
+            grounding=evaluation.get("grounding"),
+            unsupported_claims=evaluation.get("unsupported_claims"),
+            overall_quality=evaluation.get("overall_quality"),
+        )
+
+        previous_attempts.append({
+            "attempt_number": attempt_number,
+            "answer": generator_ans,
+            "decision": decision,
+            "feedback": evaluation.get("feedback", ""),
+        })
+
+        final_answer = generator_ans
+        final_decision = decision
+
+        if decision == "accept":
+            break
+
+    return {
+        "conversation_id": conversation_id,
+        "question_id": question_id,
+        "answer": final_answer,
+        "decision": final_decision,
+        "attempts_used": len(previous_attempts),
+    }
+
+
+res= process_source_question("Malak_Sobhy_CV.pdf" ,"file","what is mohamed?")
+print("workflow result:",res)

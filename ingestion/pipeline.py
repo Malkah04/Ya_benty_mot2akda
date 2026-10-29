@@ -1,5 +1,5 @@
 from ingestion.loaders import FILE_LOADER,SRC_LOADER,AUDIO_LOADER
-from ingestion.chunk import chunk_loader ,split_documents
+from ingestion.chunk import split_documents
 from pathlib import Path
 from retrieval.vector_store import save_chunks
 
@@ -23,7 +23,8 @@ def ingest(source ,source_type):
 
     ids =[chunk.metadata["chunk_id"] for chunk in chunks]
 
-    save_chunks(chunks ,id)
+    save_chunks(chunks ,ids)
+    print(f"Successfully ingested {len(chunks)} chunks from {source}.")
 
     return chunks
 

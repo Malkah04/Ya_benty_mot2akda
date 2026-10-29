@@ -1,3 +1,5 @@
+import json
+
 from agents.evaluator.prompt import prompt
 from agents.llm import llm
 
@@ -13,4 +15,5 @@ def evaluate_agent(question , context ,answer):
         "answer":answer
     }
     response =evaluator_chain.invoke(input)
-    return response.content
+
+    return json.loads(response.content)
