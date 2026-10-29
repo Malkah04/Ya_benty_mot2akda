@@ -28,4 +28,5 @@ def save_chunks(chunks ,ids):
         documents=chunks,
         ids=ids
     )
+    print(f"Saved {len(chunks)} chunks to the vector store.")
     return vector_store

@@ -3,20 +3,6 @@ from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 import hashlib
 
-
-# def chunk_loader(content: str, source: str) -> Document:
-#     """Convert extracted text into a LangChain Document."""
-
-#     document = Document(
-#         page_content=content,
-#         metadata={
-#             "source": source,
-#         },
-#     )
-
-#     return document
-
-
 def split_documents(
     documents: list[Document],
     file_name:str
