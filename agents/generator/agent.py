@@ -1,5 +1,6 @@
 from agents.llm import llm
 from agents.generator.prompt import prompt
+from agents.generator.agent_cache import get_semantic_response, save_semantic_response
 
 generator_chain = prompt | llm
 
