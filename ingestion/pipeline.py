@@ -1,4 +1,4 @@
-from ingestion.loaders import FILE_LOADER,SRC_LOADER,AUDIO_LOADER
+from ingestion.loaders import FILE_LOADER,SRC_LOADER,AUDIO_LOADER ,WIKI_LOADER
 from ingestion.chunk import split_documents
 from pathlib import Path
 from retrieval.vector_store import save_chunks
@@ -10,8 +10,14 @@ def ingest(source ,source_type):
     elif source_type == "audio" :
         extension = Path(source).suffix.lower()
         handler = AUDIO_LOADER.get(extension)
-    else :
+    elif source_type =="url" :
         handler = SRC_LOADER.get(source_type)
+
+    elif source_type =="wikipedia":
+        handler = WIKI_LOADER.get(source_type)
+    else :
+        handler =None
+        print("errorrr")
 
     if handler is None:
         raise ValueError("Unsupported source type")

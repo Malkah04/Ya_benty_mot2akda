@@ -15,5 +15,5 @@ def evaluate_agent(question , context ,answer):
         "answer":answer
     }
     response =evaluator_chain.invoke(input)
-
+    print("LOGS : evaluator agent response generated \n")
     return json.loads(response.content)

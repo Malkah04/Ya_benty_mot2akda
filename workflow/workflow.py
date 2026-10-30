@@ -1,4 +1,3 @@
-
 import uuid
 
 from agents.generator.memory import (
@@ -53,16 +52,24 @@ def process_source_question(
 
     question_id = str(uuid.uuid4())
 
-    cached_response = get_semantic_response(question)
+    cached_response = get_semantic_response(question,conversation_id=conversation_id)
     if cached_response is not None:
-        print("Returning cached response.")
-        return cached_response
+        print("LOGS: Returning cached response.\n")
+        return {
+            "conversation_id": conversation_id,
+            "question_id": None,
+            "answer": cached_response,
+            "decision": "cached",
+            "attempts_used": 0,
+            "cached": True,
+        }
 
     save_question(
         question_id=question_id,
         conversation_id=conversation_id,
         content=question,
     )
+    print("LOGS: question saved in db \n")
 
     ingest(source, source_type)
     retriever_instance = retriever(k=3)
@@ -85,6 +92,7 @@ def process_source_question(
             chat_history=str(chat_history),
             previous_attempts=attempts_text,
         )
+        print("LOGS: generator agent response \n")
 
         save_attempt(
             attempt_id=attempt_id,
@@ -92,12 +100,15 @@ def process_source_question(
             attempt_number=attempt_number,
             answer=generator_ans,
         )
+        print("LOGS: generator answer saved in db \n")
+
 
         evaluation = evaluate_agent(
             question=question,
             context=context,
             answer=generator_ans,
         )
+        print("LOGS: evaluation model response \n")
         print("Evaluation type:", type(evaluation))
         print("Evaluation value:", repr(evaluation))
         print(evaluation)
@@ -121,6 +132,7 @@ def process_source_question(
             unsupported_claims=evaluation.get("unsupported_claims"),
             overall_quality=evaluation.get("overall_quality"),
         )
+        print("LOGS : evaluation answer saved in db \n")
 
         previous_attempts.append({
             "attempt_number": attempt_number,
@@ -133,7 +145,8 @@ def process_source_question(
         final_decision = decision
 
         if decision == "accept":
-            save_semantic_response(question,generator_ans)
+            save_semantic_response(question,generator_ans ,conversation_id)
+            print("LOGS : decision of evaluation is accepted and saved in cache \n")
             break
 
     return {
@@ -145,5 +158,5 @@ def process_source_question(
     }
 
 
-res= process_source_question("Malak_Sobhy_CV.pdf" ,"file","what is malak skills?")
-print("workflow result:",res)
+# res= process_source_question("Malak_Sobhy_CV.pdf" ,"file","what is malak skills?")
+# print("workflow result:",res)

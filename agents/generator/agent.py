@@ -31,7 +31,7 @@ def generator_agent(context ,question,chat_history ="" ,previous_attempts=""):
         "previous_attempts": previous_attempts,
     }
     response = generator_chain.invoke(inputs)
-    print("Generator response:", response.content)
+    print("LOGS: generator agent response generated \n")
     return response.content
 
     
