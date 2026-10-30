@@ -31,23 +31,27 @@ def get_attempts_count(question_id: str) -> int:
     result = execute_query(query, (question_id,))
     return result if result else 0
 
-def get_chat_history(conversation_id):
+def get_chat_history(conversation_id , limit=10):
     if not conversation_id:
         raise ValueError("conversation_id must be provided.")
     query = """
-        SELECT
-            q.question_id,
-            q.content AS question,
-            a.attempt_number,
-            a.answer,
-            a.created_at
-        FROM questions AS q
-        JOIN attempts AS a
-            ON a.question_id = q.question_id
-        WHERE q.conversation_id = ?
-        ORDER BY q.question_id ASC, a.attempt_number ASC
+        SELECT * FROM (
+            SELECT
+                q.question_id,
+                q.content AS question,
+                a.attempt_number,
+                a.answer,
+                a.created_at
+            FROM questions AS q
+            JOIN attempts AS a
+                ON a.question_id = q.question_id
+            WHERE q.conversation_id = ?
+            ORDER BY q.question_id DESC, a.attempt_number DESC
+            LIMIT ?
+        ) AS sub
+        ORDER BY sub.question_id ASC, sub.attempt_number ASC
     """
-    rows= execute_query(query, (conversation_id,))
+    rows= execute_query(query, (conversation_id, limit))
     return rows 
 
 def create_conversation(conversation_id: str):

@@ -13,6 +13,7 @@ from agents.generator.agent import generator_agent
 from agents.evaluator.agent import evaluate_agent
 from agents.evaluator.memory import save_evaluation
 from storage.database import init_db
+from agents.generator.agent_cache import save_semantic_response ,get_semantic_response
 
 init_db()
 
@@ -51,6 +52,11 @@ def process_source_question(
         create_conversation(conversation_id)
 
     question_id = str(uuid.uuid4())
+
+    cached_response = get_semantic_response(question)
+    if cached_response is not None:
+        print("Returning cached response.")
+        return cached_response
 
     save_question(
         question_id=question_id,
@@ -127,6 +133,7 @@ def process_source_question(
         final_decision = decision
 
         if decision == "accept":
+            save_semantic_response(question,generator_ans)
             break
 
     return {
@@ -138,5 +145,5 @@ def process_source_question(
     }
 
 
-res= process_source_question("Malak_Sobhy_CV.pdf" ,"file","what is mohamed?")
+res= process_source_question("Malak_Sobhy_CV.pdf" ,"file","what is malak skills?")
 print("workflow result:",res)
