@@ -29,7 +29,7 @@ def get_semantic_response(question ,conversation_id, threshold=0.85):
 
 def save_semantic_response(question, response ,conversation_id):
     embedding = embedding_model.embed_query(question)
-    key = cache.make_key(namespace=f"3ala_damanty:generator_semantic:{conversation_id}", data=question)
+    key = cache.make_key(namespace=f"generator_semantic:{conversation_id}", data=question)
     
     cache.set(
         key,
