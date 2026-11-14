@@ -2,6 +2,8 @@ from ingestion.loaders import FILE_LOADER,SRC_LOADER,AUDIO_LOADER ,WIKI_LOADER
 from ingestion.chunk import split_documents
 from pathlib import Path
 from retrieval.vector_store import save_chunks
+from retrieval.bm25_index import build_bm25_index
+from agents.retriever.tools import configure_retrieval_resources
 
 def ingest(source ,source_type):
     if source_type == "file":
@@ -30,6 +32,8 @@ def ingest(source ,source_type):
     ids =[chunk.metadata["chunk_id"] for chunk in chunks]
 
     save_chunks(chunks ,ids)
+    bm25_index = build_bm25_index(chunks)
+    configure_retrieval_resources(bm25_index, chunks)
     print(f"Successfully ingested {len(chunks)} chunks from {source}.")
 
     return chunks
