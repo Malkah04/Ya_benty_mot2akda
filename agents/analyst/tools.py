@@ -146,6 +146,16 @@ def calculator(op:str , values:list[float])->str:
             raise ValueError("percentage_of requires percentage and total")
         res =(values[0]/100) *values[1]
 
+    elif op == "percentage_change":
+        if len(values) != 2:
+            raise ValueError("percentage_change requires old and new values")
+
+        old_value, new_value = values
+        if old_value == 0:
+            raise ValueError("Cannot calculate percentage change from zero")
+
+        res = ((new_value - old_value) / abs(old_value)) * 100
+
     elif op =="average":
         res =sum(values)/len(values)
 

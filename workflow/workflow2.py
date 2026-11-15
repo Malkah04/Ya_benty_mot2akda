@@ -136,9 +136,6 @@ def process_source_question(source,source_type,question,conversation_id=None, ma
                 final_answer,
                 conversation_id
             )
-
-
-
             print("LOGS: Analysis completed.")
 
             return {
@@ -222,7 +219,7 @@ def process_source_question(source,source_type,question,conversation_id=None, ma
 
 
 if __name__ == "__main__":
-    q ="Calculate the percentage difference in the number of parameters between BERT-base and BERT-large. Explain how this difference relates to their model configurations."
+    q ="Extract the main experimental results table from the RoBERTa paper and identify which model achieved the best result on the GLUE benchmark.."
     res = process_source_question(
         ["/home/malak/Downloads/3ala_damanty/attension all you need paper.pdf",
         "/home/malak/Downloads/3ala_damanty/bert_pretrained.pdf",
